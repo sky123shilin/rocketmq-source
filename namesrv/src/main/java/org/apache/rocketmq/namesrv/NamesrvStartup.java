@@ -20,6 +20,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import org.apache.commons.cli.CommandLine;
@@ -55,29 +56,25 @@ public class NamesrvStartup {
         controllerManagerMain();
     }
 
-    public static NamesrvController main0(String[] args) {
+    public static void main0(String[] args) {
         try {
             parseCommandlineAndConfigFile(args);
-            NamesrvController controller = createAndStartNamesrvController();
-            return controller;
+            createAndStartNamesrvController();
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(-1);
         }
-
-        return null;
     }
 
-    public static ControllerManager controllerManagerMain() {
+    public static void controllerManagerMain() {
         try {
             if (namesrvConfig.isEnableControllerInNamesrv()) {
-                return createAndStartControllerManager();
+                createAndStartControllerManager();
             }
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(-1);
         }
-        return null;
     }
 
     public static void parseCommandlineAndConfigFile(String[] args) throws Exception {
@@ -194,7 +191,7 @@ public class NamesrvStartup {
 
     public static ControllerManager start(final ControllerManager controllerManager) throws Exception {
 
-        if (null == controllerManager) {
+        if (Objects.isNull(controllerManager)) {
             throw new IllegalArgumentException("ControllerManager is null");
         }
 

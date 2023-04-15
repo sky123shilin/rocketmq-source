@@ -46,10 +46,20 @@ public class BrokerStartup {
     public static Logger log;
     public static final SystemConfigFileHelper CONFIG_FILE_HELPER = new SystemConfigFileHelper();
 
+    /**
+     * Broker启动类，是Broker的入口
+     */
     public static void main(String[] args) {
+        // 先构造一个BrokerController对象，这是Broker的核心对象，封装了很多东西
+        // 再启动，即start方法
         start(createBrokerController(args));
     }
 
+    /**
+     * Broker启动方法
+     * 主要完成BrokerController的start方法
+     * @param controller BrokerController对象
+     */
     public static BrokerController start(BrokerController controller) {
         try {
             controller.start();
@@ -79,6 +89,9 @@ public class BrokerStartup {
         }
     }
 
+    /**
+     * 初始化构造BrokerController对象
+     */
     public static BrokerController buildBrokerController(String[] args) throws Exception {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
 
@@ -86,8 +99,10 @@ public class BrokerStartup {
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         final NettyClientConfig nettyClientConfig = new NettyClientConfig();
         final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
+        // 这里初始化Broker Server监听的端口是10911，所以Broker端口是10911
         nettyServerConfig.setListenPort(10911);
 
+        // 初始化并注册 mqbroker命令，并解析命令参数
         Options options = ServerUtil.buildCommandlineOptions(new Options());
         CommandLine commandLine = ServerUtil.parseCmdLine(
             "mqbroker", args, buildCommandlineOptions(options), new DefaultParser());

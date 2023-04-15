@@ -732,15 +732,22 @@ public class BrokerController {
 
     public boolean initialize() throws CloneNotSupportedException {
 
+        // 加载topic列表，从~/store/config/topics.json中
         boolean result = this.topicConfigManager.load();
+        // 加载topic queue映射，从~/store/config/topicQueueMapping.json中
         result = result && this.topicQueueMappingManager.load();
+        // 加载消费者消费位置数据，从~/store/config/consumerOffset.json中
         result = result && this.consumerOffsetManager.load();
+        // 加载订阅组数据，从~/store/config/subscriptionGroup.json中
         result = result && this.subscriptionGroupManager.load();
+        // 加载消费过滤数据，从~/store/config/consumerFilter.json中
         result = result && this.consumerFilterManager.load();
+        // 加载consumerOrderInfo数据，从~/store/config/consumerOrderInfo.json中
         result = result && this.consumerOrderInfoManager.load();
 
         if (result) {
             try {
+                // 初始化rocketmq数据文件组件
                 DefaultMessageStore defaultMessageStore = new DefaultMessageStore(this.messageStoreConfig, this.brokerStatsManager, this.messageArrivingListener, this.brokerConfig);
                 defaultMessageStore.setTopicConfigTable(topicConfigManager.getTopicConfigTable());
 
@@ -748,6 +755,7 @@ public class BrokerController {
                     DLedgerRoleChangeHandler roleChangeHandler = new DLedgerRoleChangeHandler(this, defaultMessageStore);
                     ((DLedgerCommitLog) defaultMessageStore.getCommitLog()).getdLedgerServer().getDLedgerLeaderElector().addRoleChangeHandler(roleChangeHandler);
                 }
+                // broker统计信息
                 this.brokerStats = new BrokerStats(defaultMessageStore);
                 //load plugin
                 MessageStorePluginContext context = new MessageStorePluginContext(messageStoreConfig, brokerStatsManager, messageArrivingListener, brokerConfig, configuration);
@@ -772,6 +780,7 @@ public class BrokerController {
             registerMessageStoreHook();
         }
 
+        // 最核心，加载RocketMQ物理存储的CommitLog和ConsumeQueue
         result = result && this.messageStore.load();
 
         if (messageStoreConfig.isTimerWheelEnable()) {
@@ -1460,7 +1469,7 @@ public class BrokerController {
     }
 
     protected void startBasicService() throws Exception {
-
+        // 启动存储层服务，比如 CommitLog、ConsumeQueue 存储管理
         if (this.messageStore != null) {
             this.messageStore.start();
         }
@@ -1477,6 +1486,7 @@ public class BrokerController {
             remotingServerStartLatch.await();
         }
 
+        // 普通通道请求处理服务。一般的请求都是在这里被处理的。
         if (this.remotingServer != null) {
             this.remotingServer.start();
 
@@ -1486,6 +1496,7 @@ public class BrokerController {
             }
         }
 
+        // VIP 通道请求处理服务。如果普通通道比较忙，那么可以使用 VIP 通道，一般作为客户端降级使用。
         if (this.fastRemotingServer != null) {
             this.fastRemotingServer.start();
         }
@@ -1516,22 +1527,27 @@ public class BrokerController {
             this.fileWatchService.start();
         }
 
+        // Pull 长轮询服务
         if (this.pullRequestHoldService != null) {
             this.pullRequestHoldService.start();
         }
 
+        // 清理心跳超时的生产者、消费者、过滤服务器
         if (this.clientHousekeepingService != null) {
             this.clientHousekeepingService.start();
         }
 
+        // 过滤服务器管理
         if (this.filterServerManager != null) {
             this.filterServerManager.start();
         }
 
+        // Broker 监控数据统计管理
         if (this.brokerStatsManager != null) {
             this.brokerStatsManager.start();
         }
 
+        // Broker 快速失败处理
         if (this.brokerFastFailure != null) {
             this.brokerFastFailure.start();
         }

@@ -300,7 +300,8 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     * @throws IOException
+     * 核心加载方法，主要是加载CommitLog、ConsumeQueue、Index File数据到内存
+     * @return 是否加载成功
      */
     @Override
     public boolean load() {
@@ -326,6 +327,7 @@ public class DefaultMessageStore implements MessageStore {
                     new StoreCheckpoint(
                         StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
                 this.masterFlushedOffset = this.storeCheckpoint.getMasterFlushedOffset();
+                // 加载IndexFile，目录是~/store/index/下
                 result = this.indexService.load(lastExitOK);
                 this.recover(lastExitOK);
                 LOGGER.info("message store recover end, and the max phy offset = {}", this.getMaxPhyOffset());
